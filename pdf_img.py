@@ -70,6 +70,7 @@ def process_content(article):
         png_url = '/'.join((siteurl, preview_dir, linked_content.url + '.png'))
         png_url = png_url.replace('\\', '/')
         img['src'] = png_url
+        img['class'] = img['class'] + ' pdf-img'
     
     article._content = unicode(soup)
 
