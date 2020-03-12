@@ -44,7 +44,7 @@ def process_content(article):
         soup = BeautifulSoup(article._content,'lxml')
     except FeatureNotFound:
         soup = BeautifulSoup(article._content,'html.parser')
-    
+
     for img in soup.find_all('img',src=FORMAT_RE):
         src = re.sub(article.settings['INTRASITE_LINK_REGEX'],'',img['src'].strip())
         if src.startswith(('http://','https://','ftp://')): continue
@@ -53,11 +53,11 @@ def process_content(article):
         else:
             # relative to the source path of this content
             src = article.get_relative_source_path(os.path.join(article.relative_dir, src))
-        if src not in article._context['filenames']:
+        if src not in article._context['static_content']:
             unquoted_path = src.replace('%20', ' ')
-            if unquoted_path in article._context['filenames']:
+            if unquoted_path in article._context['static_content']:
                 src = unquoted_path
-        linked_content = article._context['filenames'].get(src)
+        linked_content = article._context['static_content'].get(src)
         if not linked_content:
             continue
         link = img.wrap(soup.new_tag("a"))
@@ -79,6 +79,8 @@ def get_pdf_imgs(generators):
     for generator in generators:
         if isinstance(generator, ArticlesGenerator):
             for article in generator.articles:
+                process_content(article)
+            for article in generator.drafts:
                 process_content(article)
         elif isinstance(generator, PagesGenerator):
             for page in generator.pages:
@@ -102,7 +104,7 @@ def convert_pdfs(pelican):
                     logger.info('Creating PNG preview of %s as %s', path,
                                 pdf_imgs[path])
             except BlobError:
-                logger.warn('Could create PNG preview of `{}`'.format(src))
+                logger.warn('Could not create PNG preview of `{}`'.format(outpath))
 
 
 def register():
